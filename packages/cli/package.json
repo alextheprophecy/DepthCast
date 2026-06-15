@@ -1,0 +1,46 @@
+{
+  "name": "@depthcast/cli",
+  "version": "0.1.0",
+  "description": "Bake depth maps offline so production sites ship a tiny runtime instead of a 50MB model. `npx depthcast precompute img.jpg`.",
+  "keywords": [
+    "depth",
+    "depthcast",
+    "cli",
+    "depth-anything",
+    "precompute"
+  ],
+  "license": "MIT",
+  "author": "alextheprophecy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextheprophecy/depthcast.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/alextheprophecy/depthcast",
+  "type": "module",
+  "bin": {
+    "depthcast": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"no tests\" && exit 0"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.0.0",
+    "depthcast": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

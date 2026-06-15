@@ -1,0 +1,57 @@
+{
+  "name": "@depthcast/react",
+  "version": "0.1.0",
+  "description": "React wrapper for depthcast — drop-in interactive 3D pop-out images.",
+  "keywords": [
+    "depth",
+    "3d",
+    "parallax",
+    "react",
+    "depthcast",
+    "computer-vision"
+  ],
+  "license": "MIT",
+  "author": "alextheprophecy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextheprophecy/depthcast.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/alextheprophecy/depthcast",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"no tests\" && exit 0"
+  },
+  "peerDependencies": {
+    "depthcast": "workspace:*",
+    "react": ">=17",
+    "react-dom": ">=17"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "depthcast": "workspace:*",
+    "react": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

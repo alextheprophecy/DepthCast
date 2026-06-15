@@ -1,0 +1,58 @@
+{
+  "name": "depthcast",
+  "version": "0.1.0",
+  "description": "Turn any image into an interactive 3D pop-out in the browser — automatic depth, no server, no manual depth map.",
+  "keywords": [
+    "depth",
+    "3d",
+    "parallax",
+    "webgl",
+    "webgpu",
+    "depth-estimation",
+    "depth-anything",
+    "transformers.js",
+    "computer-vision",
+    "image",
+    "pop-out"
+  ],
+  "license": "MIT",
+  "author": "alextheprophecy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextheprophecy/depthcast.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/alextheprophecy/depthcast",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "tsup": "^8.3.5",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
