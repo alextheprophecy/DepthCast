@@ -32,26 +32,30 @@ in float vDepth;
 
 uniform sampler2D uTex;
 uniform sampler2D uDepth;
-uniform vec2 uTexel;     // 1.0 / depthSize, for gradient sampling
-uniform float uFeather;  // 0 = off; >0 = fade across steep depth edges
+uniform vec2 uTexel;   // 1.0 / depthSize, for gradient sampling
+uniform float uCut;    // depth-gradient threshold; 0 = no cut
 
 out vec4 fragColor;
 
 void main() {
   vec4 color = texture(uTex, vUV);
 
-  if (uFeather > 0.0) {
-    // Sobel-ish depth gradient: steep edges are where the mesh stretches.
-    float dl = texture(uDepth, vUV - vec2(uTexel.x, 0.0)).r;
-    float dr = texture(uDepth, vUV + vec2(uTexel.x, 0.0)).r;
-    float du = texture(uDepth, vUV - vec2(0.0, uTexel.y)).r;
-    float dd = texture(uDepth, vUV + vec2(0.0, uTexel.y)).r;
+  if (uCut > 0.0) {
+    // Central-difference depth gradient. A continuous mesh stretches across
+    // depth discontinuities (silhouettes); those stretched triangles map to
+    // UVs that straddle the edge, so the gradient there is large. Cutting them
+    // lets the background fill layer show through instead of a smear.
+    vec2 s = uTexel * 1.5;
+    float dl = texture(uDepth, vUV - vec2(s.x, 0.0)).r;
+    float dr = texture(uDepth, vUV + vec2(s.x, 0.0)).r;
+    float du = texture(uDepth, vUV - vec2(0.0, s.y)).r;
+    float dd = texture(uDepth, vUV + vec2(0.0, s.y)).r;
     float grad = length(vec2(dr - dl, dd - du));
-    float fade = 1.0 - smoothstep(0.06, 0.18, grad * uFeather);
-    color.a *= fade;
+    float edge = smoothstep(uCut, uCut * 2.6, grad); // ~1px AA band
+    color.a *= (1.0 - edge);
   }
 
-  if (color.a <= 0.001) discard;
+  if (color.a <= 0.02) discard;
   fragColor = color;
 }
 `

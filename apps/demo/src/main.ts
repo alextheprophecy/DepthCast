@@ -61,7 +61,7 @@ async function load(src: string | File) {
     // Same-origin single-threaded WASM + q8 model keeps inference viable here.
     device: 'wasm',
     quality: 'low',
-    maxResolution: isMobile ? 512 : 768,
+    maxResolution: isMobile ? 640 : 832,
     onProgress: setProgress,
   }
 

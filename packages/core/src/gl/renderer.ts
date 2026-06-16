@@ -2,7 +2,11 @@ import { createProgram, createTexture, getUniformLocations } from './program'
 import { VERTEX_SHADER, FRAGMENT_SHADER } from './shaders'
 import type { EdgeHandling, Quality } from '../types'
 
-const SEGMENTS_BY_QUALITY: Record<Quality, number> = { low: 96, medium: 160, high: 240 }
+const SEGMENTS_BY_QUALITY: Record<Quality, number> = { low: 128, medium: 192, high: 288 }
+
+// Depth-gradient threshold above which the displaced mesh is "cut" so the
+// background fill shows through instead of a rubber-sheet smear.
+const CUT_THRESHOLD = 0.06
 
 export interface RendererInit {
   image: ImageData
@@ -23,7 +27,7 @@ const UNIFORMS = [
   'uIntensity',
   'uDisplace',
   'uTexel',
-  'uFeather',
+  'uCut',
 ] as const
 
 export class Renderer {
@@ -37,6 +41,8 @@ export class Renderer {
   private texDepth: WebGLTexture
   private texBackground: WebGLTexture | null
   private aspect: number
+  private depthW: number
+  private depthH: number
   private parallaxAmount: number
   private clearColor: [number, number, number, number]
 
@@ -45,9 +51,11 @@ export class Renderer {
 
   constructor(init: RendererInit) {
     this.aspect = init.image.width / init.image.height
+    this.depthW = init.depth.width
+    this.depthH = init.depth.height
     this.intensity = init.intensity
     this.edgeHandling = init.edgeHandling
-    this.parallaxAmount = init.parallaxAmount ?? 0.18
+    this.parallaxAmount = init.parallaxAmount ?? 0.22
     this.clearColor = init.clearColor ?? [0, 0, 0, 0]
 
     const canvas = document.createElement('canvas')
@@ -154,6 +162,7 @@ export class Renderer {
     const gl = this.gl
     const { width, height } = this.canvas
     gl.viewport(0, 0, width, height)
+    gl.depthMask(true) // ensure the depth buffer is writable so it clears
     gl.clearColor(...this.clearColor)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -170,26 +179,34 @@ export class Renderer {
     gl.uniformMatrix4fv(this.uniforms.uProjView!, false, projView)
     gl.uniform1i(this.uniforms.uTex!, 0)
     gl.uniform1i(this.uniforms.uDepth!, 1)
-    gl.uniform2f(this.uniforms.uTexel!, 1 / this.canvas.width, 1 / this.canvas.height)
+    // Gradient step must be in depth-map texels, not the DPR-scaled canvas.
+    gl.uniform2f(this.uniforms.uTexel!, 1 / this.depthW, 1 / this.depthH)
     gl.uniform1f(this.uniforms.uIntensity!, this.intensity)
 
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, this.texDepth)
 
-    // Pass 1: flat background fill (so revealed holes show plausible colour).
+    // Pass 1: flat background fill as a colour-only underlay (no depth write),
+    // so the displaced foreground always draws over it and revealed holes show
+    // plausible colour rather than the rubber-sheet smear.
     if (this.texBackground && this.edgeHandling !== 'none') {
+      gl.disable(gl.DEPTH_TEST)
+      gl.depthMask(false)
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, this.texBackground)
       gl.uniform1f(this.uniforms.uDisplace!, 0)
-      gl.uniform1f(this.uniforms.uFeather!, 0)
+      gl.uniform1f(this.uniforms.uCut!, 0)
       gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_INT, 0)
     }
 
-    // Pass 2: displaced foreground.
+    // Pass 2: displaced foreground, depth-tested for self-occlusion, with the
+    // silhouette cut so stretched triangles drop out.
+    gl.enable(gl.DEPTH_TEST)
+    gl.depthMask(true)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.texImage)
     gl.uniform1f(this.uniforms.uDisplace!, 1)
-    gl.uniform1f(this.uniforms.uFeather!, this.edgeHandling === 'feather' ? 1 : 0)
+    gl.uniform1f(this.uniforms.uCut!, this.edgeHandling === 'none' ? 0 : CUT_THRESHOLD)
     gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_INT, 0)
 
     gl.bindVertexArray(null)
