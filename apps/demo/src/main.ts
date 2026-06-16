@@ -1,4 +1,26 @@
 import { createDepthcast, type DepthScene, type DepthcastOptions } from 'depthcast'
+import { env } from '@huggingface/transformers'
+
+// --- Make the hosted demo survive static hosting (GitHub Pages) + mobile ---
+// Pages can't send COOP/COEP headers, so SharedArrayBuffer (threaded WASM) is
+// unavailable — force single-threaded and fetch the matching WASM from the CDN.
+const wasmBackend = env.backends?.onnx?.wasm
+if (wasmBackend) {
+  wasmBackend.numThreads = 1
+  wasmBackend.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/'
+}
+
+// WebGPU → fast + fp16. No WebGPU (e.g. most iPhones) → WASM, which needs the
+// smaller q8 model and a lower input resolution to be usable.
+async function detectWebGPU(): Promise<boolean> {
+  try {
+    const gpu = (navigator as any).gpu
+    if (!gpu?.requestAdapter) return false
+    return !!(await gpu.requestAdapter())
+  } catch {
+    return false
+  }
+}
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -41,10 +63,14 @@ async function load(src: string | File) {
   controls.hidden = true
   setProgress('model', 0)
 
+  const webgpu = await detectWebGPU()
   const options: DepthcastOptions = {
     intensity: Number($<HTMLInputElement>('intensity').value),
     edgeHandling: $<HTMLSelectElement>('edge').value as DepthcastOptions['edgeHandling'],
     controls: $<HTMLSelectElement>('ctrl').value as DepthcastOptions['controls'],
+    // q8 + smaller input on WASM-only devices (phones); fp16 + full on WebGPU.
+    quality: webgpu ? 'medium' : 'low',
+    maxResolution: webgpu ? 1024 : 640,
     onProgress: setProgress,
   }
 
