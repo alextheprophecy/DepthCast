@@ -19,7 +19,7 @@ export function foregroundMask(
   height: number,
   options: { edgeThreshold?: number; dilate?: number } = {},
 ): Uint8Array {
-  const { edgeThreshold = 18, dilate = Math.max(2, Math.round(Math.min(width, height) * 0.012)) } =
+  const { edgeThreshold = 14, dilate = Math.max(3, Math.round(Math.min(width, height) * 0.02)) } =
     options
   const mask = new Uint8Array(width * height)
 

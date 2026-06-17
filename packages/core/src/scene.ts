@@ -86,7 +86,9 @@ export async function createDepthcast(
   if (o.edgeHandling === 'inpaint') {
     const gray = imageDataToGray(depthImageData)
     const mask = foregroundMask(gray, loaded.width, loaded.height)
-    background = inpaintBackground(loaded.imageData, mask)
+    // Soften push–pull ringing; the fill is only ever seen in thin disoccluded
+    // slivers, so a light blur reads as "background" rather than a sharp ghost.
+    background = blurBackground(inpaintBackground(loaded.imageData, mask), 3)
   } else if (o.edgeHandling === 'feather') {
     background = blurBackground(loaded.imageData)
   }

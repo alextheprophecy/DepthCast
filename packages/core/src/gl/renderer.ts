@@ -92,13 +92,16 @@ export class Renderer {
   private buildGrid(segments: number): { vao: WebGLVertexArrayObject; indexCount: number } {
     const gl = this.gl
     const A = this.aspect
+    // Overscan the plane slightly so parallax/orbit never exposes its edge
+    // (which would reveal the flat background layer as a "ghost copy").
+    const O = 1.06
     const verts: number[] = [] // x, y, u, v
     for (let j = 0; j <= segments; j++) {
       const v = j / segments
-      const y = v * 2 - 1
+      const y = (v * 2 - 1) * O
       for (let i = 0; i <= segments; i++) {
         const u = i / segments
-        const x = (u * 2 - 1) * A
+        const x = (u * 2 - 1) * A * O
         verts.push(x, y, u, v)
       }
     }

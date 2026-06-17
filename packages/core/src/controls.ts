@@ -15,6 +15,7 @@ export class Controls {
   private element: HTMLElement
   private detachers: Array<() => void> = []
   private dragging = false
+  private prevTouchAction = ''
 
   constructor(element: HTMLElement, mode: ControlMode) {
     this.element = element
@@ -44,10 +45,10 @@ export class Controls {
   private attach(): void {
     switch (this.mode) {
       case 'pointer':
-        this.attachPointer(false)
+        this.attachPointer()
         break
       case 'orbit':
-        this.attachPointer(true)
+        this.attachOrbit()
         break
       case 'scroll':
         this.attachScroll()
@@ -60,7 +61,8 @@ export class Controls {
     }
   }
 
-  private attachPointer(dragOnly: boolean): void {
+  /** Absolute hover mapping — good for a desktop mouse. */
+  private attachPointer(): void {
     const el = this.element
     const update = (clientX: number, clientY: number) => {
       const rect = el.getBoundingClientRect()
@@ -69,23 +71,50 @@ export class Controls {
       this.target.x = clamp(x)
       this.target.y = clamp(-y)
     }
-    if (dragOnly) {
-      this.on(el, 'pointerdown', (e: PointerEvent) => {
-        this.dragging = true
-        el.setPointerCapture?.(e.pointerId)
-      })
-      this.on(el, 'pointermove', (e: PointerEvent) => {
-        if (this.dragging) update(e.clientX, e.clientY)
-      })
-      this.on(el, 'pointerup', () => (this.dragging = false))
-      this.on(el, 'pointercancel', () => (this.dragging = false))
-    } else {
-      this.on(el, 'pointermove', (e: PointerEvent) => update(e.clientX, e.clientY))
-      this.on(el, 'pointerleave', () => {
-        this.target.x = 0
-        this.target.y = 0
-      })
-    }
+    this.on(el, 'pointermove', (e: PointerEvent) => update(e.clientX, e.clientY))
+    this.on(el, 'pointerleave', () => {
+      this.target.x = 0
+      this.target.y = 0
+    })
+  }
+
+  /**
+   * Relative drag — the view follows your finger/cursor by the *delta* since
+   * grab, instead of snapping to the absolute pointer position. Works on touch
+   * because we disable native touch gestures on the element.
+   */
+  private attachOrbit(): void {
+    const el = this.element
+    this.prevTouchAction = el.style.touchAction
+    el.style.touchAction = 'none' // let touch-drag produce pointermove, not scroll
+
+    const SENS = 2.2
+    let startX = 0
+    let startY = 0
+    let baseX = 0
+    let baseY = 0
+
+    this.on(el, 'pointerdown', (e: PointerEvent) => {
+      this.dragging = true
+      startX = e.clientX
+      startY = e.clientY
+      baseX = this.target.x
+      baseY = this.target.y
+      el.setPointerCapture?.(e.pointerId)
+      e.preventDefault()
+    })
+    this.on(el, 'pointermove', (e: PointerEvent) => {
+      if (!this.dragging) return
+      const rect = el.getBoundingClientRect()
+      const dx = (e.clientX - startX) / rect.width
+      const dy = (e.clientY - startY) / rect.height
+      this.target.x = clamp(baseX + dx * SENS)
+      this.target.y = clamp(baseY - dy * SENS)
+      e.preventDefault()
+    })
+    const end = () => (this.dragging = false)
+    this.on(el, 'pointerup', end)
+    this.on(el, 'pointercancel', end)
   }
 
   private attachScroll(): void {
@@ -101,17 +130,34 @@ export class Controls {
   }
 
   private attachGyro(): void {
+    // Treat the first reading as "neutral" so it centres on however the phone
+    // is currently held, then react to tilt deltas from there.
+    let baseBeta: number | null = null
+    let baseGamma: number | null = null
+    const landscape = () =>
+      typeof screen !== 'undefined' && Math.abs(screen.orientation?.angle ?? 0) === 90
     this.on(window, 'deviceorientation', (e: DeviceOrientationEvent) => {
-      const gamma = e.gamma ?? 0 // left/right [-90,90]
-      const beta = e.beta ?? 0 // front/back [-180,180]
-      this.target.x = clamp(gamma / 35)
-      this.target.y = clamp(-(beta - 45) / 35)
+      const gamma = e.gamma ?? 0 // left/right tilt
+      const beta = e.beta ?? 0 // front/back tilt
+      if (baseBeta === null) {
+        baseBeta = beta
+        baseGamma = gamma
+      }
+      let dx = (gamma - (baseGamma as number)) / 28
+      let dy = -(beta - (baseBeta as number)) / 28
+      if (landscape()) [dx, dy] = [dy, -dx]
+      this.target.x = clamp(dx)
+      this.target.y = clamp(dy)
     })
   }
 
   detach(): void {
     for (const off of this.detachers) off()
     this.detachers = []
+    this.dragging = false
+    if (this.element.style.touchAction === 'none') {
+      this.element.style.touchAction = this.prevTouchAction
+    }
   }
 
   dispose(): void {

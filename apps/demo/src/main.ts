@@ -1,4 +1,9 @@
-import { createDepthcast, type DepthScene, type DepthcastOptions } from 'depthcast'
+import {
+  createDepthcast,
+  requestGyroPermission,
+  type DepthScene,
+  type DepthcastOptions,
+} from 'depthcast'
 import { env } from '@huggingface/transformers'
 
 // --- Make the hosted demo work on static hosting (GitHub Pages) + mobile ---
@@ -23,6 +28,9 @@ const progressBar = progress.querySelector('.bar') as HTMLElement
 const progressText = progress.querySelector('span') as HTMLElement
 const controls = $<HTMLElement>('controls')
 const samplesEl = $<HTMLDivElement>('samples')
+
+// Pointer (hover) does nothing on touch — default phones to drag-to-orbit.
+if (isMobile) $<HTMLSelectElement>('ctrl').value = 'orbit'
 
 const SAMPLES = [
   'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=1000&q=80',
@@ -109,11 +117,20 @@ for (const url of SAMPLES) {
 $<HTMLInputElement>('intensity').addEventListener('input', (e) =>
   scene?.update({ intensity: Number((e.target as HTMLInputElement).value) }),
 )
-$<HTMLSelectElement>('ctrl').addEventListener('change', (e) =>
-  scene?.update({
-    controls: (e.target as HTMLSelectElement).value as DepthcastOptions['controls'],
-  }),
-)
+$<HTMLSelectElement>('ctrl').addEventListener('change', async (e) => {
+  const select = e.target as HTMLSelectElement
+  const mode = select.value as DepthcastOptions['controls']
+  // iOS only delivers deviceorientation after an explicit, user-gesture grant.
+  if (mode === 'gyro') {
+    const ok = await requestGyroPermission()
+    if (!ok) {
+      select.value = 'orbit'
+      scene?.update({ controls: 'orbit' })
+      return
+    }
+  }
+  scene?.update({ controls: mode })
+})
 $<HTMLSelectElement>('edge').addEventListener('change', (e) =>
   scene?.update({
     edgeHandling: (e.target as HTMLSelectElement).value as DepthcastOptions['edgeHandling'],
