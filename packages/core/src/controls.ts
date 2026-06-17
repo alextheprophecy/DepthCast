@@ -88,7 +88,7 @@ export class Controls {
     this.prevTouchAction = el.style.touchAction
     el.style.touchAction = 'none' // let touch-drag produce pointermove, not scroll
 
-    const SENS = 2.2
+    const SENS = 3.0
     let startX = 0
     let startY = 0
     let baseX = 0

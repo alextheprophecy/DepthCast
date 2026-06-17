@@ -72,6 +72,12 @@ header p {
   border-radius: 16px;
   overflow: hidden;
   background: #000;
+  /* Let drag-to-orbit own touch gestures instead of scrolling the page. */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+.viewport > canvas {
+  touch-action: none;
 }
 
 .progress {

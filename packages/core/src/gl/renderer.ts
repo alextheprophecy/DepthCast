@@ -37,6 +37,7 @@ export class Renderer {
   private uniforms: Record<string, WebGLUniformLocation | null>
   private vao: WebGLVertexArrayObject
   private indexCount: number
+  private quadVao: WebGLVertexArrayObject
   private texImage: WebGLTexture
   private texDepth: WebGLTexture
   private texBackground: WebGLTexture | null
@@ -78,6 +79,7 @@ export class Renderer {
     const { vao, indexCount } = this.buildGrid(segments)
     this.vao = vao
     this.indexCount = indexCount
+    this.quadVao = this.buildQuad()
 
     this.texImage = createTexture(gl, init.image)
     this.texDepth = createTexture(gl, init.depth)
@@ -92,9 +94,9 @@ export class Renderer {
   private buildGrid(segments: number): { vao: WebGLVertexArrayObject; indexCount: number } {
     const gl = this.gl
     const A = this.aspect
-    // Overscan the plane slightly so parallax/orbit never exposes its edge
-    // (which would reveal the flat background layer as a "ghost copy").
-    const O = 1.06
+    // Tiny overscan so the very edge of the plane doesn't show a hard seam
+    // against the backdrop during parallax. The static backdrop covers borders.
+    const O = 1.02
     const verts: number[] = [] // x, y, u, v
     for (let j = 0; j <= segments; j++) {
       const v = j / segments
@@ -139,6 +141,26 @@ export class Renderer {
     return { vao, indexCount: indices.length }
   }
 
+  /** Full-screen quad for the static (non-parallaxing) background backdrop. */
+  private buildQuad(): WebGLVertexArrayObject {
+    const gl = this.gl
+    // x, y, u, v — covers clip space; uv maps the backdrop texture.
+    const verts = new Float32Array([-1, -1, 0, 0, 1, -1, 1, 0, -1, 1, 0, 1, 1, 1, 1, 1])
+    const vao = gl.createVertexArray()!
+    gl.bindVertexArray(vao)
+    const vbo = gl.createBuffer()!
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW)
+    const aPos = gl.getAttribLocation(this.program, 'aPos')
+    const aUV = gl.getAttribLocation(this.program, 'aUV')
+    gl.enableVertexAttribArray(aPos)
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 16, 0)
+    gl.enableVertexAttribArray(aUV)
+    gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 16, 8)
+    gl.bindVertexArray(null)
+    return vao
+  }
+
   setIntensity(v: number): void {
     this.intensity = v
   }
@@ -178,8 +200,6 @@ export class Renderer {
     const projView = multiply(proj, view)
 
     gl.useProgram(this.program)
-    gl.bindVertexArray(this.vao)
-    gl.uniformMatrix4fv(this.uniforms.uProjView!, false, projView)
     gl.uniform1i(this.uniforms.uTex!, 0)
     gl.uniform1i(this.uniforms.uDepth!, 1)
     // Gradient step must be in depth-map texels, not the DPR-scaled canvas.
@@ -189,23 +209,27 @@ export class Renderer {
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, this.texDepth)
 
-    // Pass 1: flat background fill as a colour-only underlay (no depth write),
-    // so the displaced foreground always draws over it and revealed holes show
-    // plausible colour rather than the rubber-sheet smear.
+    // Pass 1: STATIC screen-space backdrop (identity transform, no depth write).
+    // Because it does not parallax with the camera, disoccluded gaps reveal a
+    // clean background instead of a second offset copy sliding across the frame.
     if (this.texBackground && this.edgeHandling !== 'none') {
       gl.disable(gl.DEPTH_TEST)
       gl.depthMask(false)
+      gl.bindVertexArray(this.quadVao)
+      gl.uniformMatrix4fv(this.uniforms.uProjView!, false, IDENTITY)
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, this.texBackground)
       gl.uniform1f(this.uniforms.uDisplace!, 0)
       gl.uniform1f(this.uniforms.uCut!, 0)
-      gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_INT, 0)
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
 
     // Pass 2: displaced foreground, depth-tested for self-occlusion, with the
     // silhouette cut so stretched triangles drop out.
     gl.enable(gl.DEPTH_TEST)
     gl.depthMask(true)
+    gl.bindVertexArray(this.vao)
+    gl.uniformMatrix4fv(this.uniforms.uProjView!, false, projView)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.texImage)
     gl.uniform1f(this.uniforms.uDisplace!, 1)
@@ -219,6 +243,7 @@ export class Renderer {
     const gl = this.gl
     gl.deleteProgram(this.program)
     gl.deleteVertexArray(this.vao)
+    gl.deleteVertexArray(this.quadVao)
     gl.deleteTexture(this.texImage)
     gl.deleteTexture(this.texDepth)
     if (this.texBackground) gl.deleteTexture(this.texBackground)
@@ -231,6 +256,9 @@ export class Renderer {
 
 type Vec3 = [number, number, number]
 type Mat4 = Float32Array
+
+// prettier-ignore
+const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
 
 function perspective(fovy: number, aspect: number, near: number, far: number): Mat4 {
   const f = 1 / Math.tan(fovy / 2)
