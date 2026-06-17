@@ -45,7 +45,10 @@ import type { ImageSource, LightcastOptions } from './types'
  */
 export async function bakeGBuffer(
   input: ImageSource,
-  options: Pick<LightcastOptions, 'model' | 'device' | 'quality' | 'maxResolution' | 'onProgress'> = {},
+  options: Pick<
+    LightcastOptions,
+    'model' | 'device' | 'quality' | 'maxResolution' | 'onProgress'
+  > = {},
 ): Promise<ImageData> {
   const loaded = await _loadImage(input, options.maxResolution ?? 1024)
   const g = await _estimate(loaded.imageData.data, loaded.width, loaded.height, {

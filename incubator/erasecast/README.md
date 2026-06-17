@@ -68,9 +68,11 @@ Selectable via `strategy`: **`tiled`** _(default)_ / `single` / `progressive` �
 ## Two modes
 
 ### 1. Runtime — the magic ✨
+
 Interactive editor: click/brush to select, erase, undo/redo. Models lazy-load from CDN and cache after first use.
 
 ### 2. Batch — production 🚀
+
 A CLI to clean folders headlessly given masks (or auto-detected objects), for build pipelines and bulk cleanup.
 
 ```bash
@@ -92,11 +94,11 @@ See [`PLAN.md`](./PLAN.md) for the full design, feasibility analysis and roadmap
 
 ## Packages
 
-| package | what |
-| --- | --- |
-| [`erasecast`](./packages/core) | framework-agnostic core |
-| [`@erasecast/react`](./packages/react) | `<Eraser />` wrapper |
-| [`@erasecast/cli`](./packages/cli) | batch `remove` offline |
+| package                                | what                    |
+| -------------------------------------- | ----------------------- |
+| [`erasecast`](./packages/core)         | framework-agnostic core |
+| [`@erasecast/react`](./packages/react) | `<Eraser />` wrapper    |
+| [`@erasecast/cli`](./packages/cli)     | batch `remove` offline  |
 
 ## License
 

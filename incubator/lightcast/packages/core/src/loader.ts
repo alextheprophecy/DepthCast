@@ -13,7 +13,9 @@ export function fitWithin(w: number, h: number, max: number): { width: number; h
   return { width: Math.round(w * s), height: Math.round(h * s) }
 }
 
-async function toBitmap(input: Exclude<import('./types').ImageSource, ImageData>): Promise<ImageBitmap> {
+async function toBitmap(
+  input: Exclude<import('./types').ImageSource, ImageData>,
+): Promise<ImageBitmap> {
   if (typeof input === 'string') {
     const res = await fetch(input)
     return createImageBitmap(await res.blob())

@@ -4,10 +4,10 @@ This folder holds **two complete, self-contained project scaffolds** designed as
 depthcast, plus the brainstorm that produced them. Each subfolder is its own pnpm monorepo
 (`packages/core` + `react` + `cli` + `apps/demo`) and is meant to graduate into **its own GitHub repo**.
 
-| project | one-liner | model | the hard problem it owns |
-| --- | --- | --- | --- |
-| [**lightcast**](./lightcast) | Relight any photo from one image, in the browser | Metric3D v2 (normals + depth) | **de-lighting** (albedo recovery) |
-| [**erasecast**](./erasecast) | Click an object — it's gone, in the browser | SAM2 + LaMa | **seamless high-res tiled inpainting** |
+| project                      | one-liner                                        | model                         | the hard problem it owns               |
+| ---------------------------- | ------------------------------------------------ | ----------------------------- | -------------------------------------- |
+| [**lightcast**](./lightcast) | Relight any photo from one image, in the browser | Metric3D v2 (normals + depth) | **de-lighting** (albedo recovery)      |
+| [**erasecast**](./erasecast) | Click an object — it's gone, in the browser      | SAM2 + LaMa                   | **seamless high-res tiled inpainting** |
 
 Each has a full `PLAN.md` (gap analysis, feasibility, architecture, API, roadmap, risks) and a
 sellable `README.md`.

@@ -39,7 +39,9 @@ async function main() {
   const out = values.out ?? input.replace(/\.[^.]+$/, '') + '.gbuffer.png'
   // TODO(impl): decode `input` to RGBA (sharp/jimp), call bakeGBuffer (Node ORT),
   // encode the returned ImageData to PNG at `out`. See PLAN.md §5.
-  console.log(`lightcast: would bake "${input}" → "${out}" (Node decode/encode pending — PLAN.md §5)`)
+  console.log(
+    `lightcast: would bake "${input}" → "${out}" (Node decode/encode pending — PLAN.md §5)`,
+  )
   process.exitCode = 0
 }
 

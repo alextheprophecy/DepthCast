@@ -47,8 +47,11 @@ async function main() {
   for (const input of inputs) {
     const out =
       values.out ??
-      input.replace(/\.[^.]+$/, '') + '.clean$&'.replace('$&', input.match(/\.[^.]+$/)?.[0] ?? '.png')
-    console.log(`erasecast: would remove from "${input}" → "${out}" (Node wiring pending — PLAN.md §5)`)
+      input.replace(/\.[^.]+$/, '') +
+        '.clean$&'.replace('$&', input.match(/\.[^.]+$/)?.[0] ?? '.png')
+    console.log(
+      `erasecast: would remove from "${input}" → "${out}" (Node wiring pending — PLAN.md §5)`,
+    )
   }
 }
 

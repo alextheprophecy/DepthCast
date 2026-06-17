@@ -6,12 +6,7 @@
  * pure compositor in tiler.ts, calling LaMa per dirty tile). Model I/O is the
  * only piece left for the first implementation PR; the composite is real.
  */
-import {
-  compositeMasked,
-  dilateMask,
-  planTiles,
-  type Tile,
-} from './tiler'
+import { compositeMasked, dilateMask, planTiles, type Tile } from './tiler'
 import type { Device, Mask, Strategy } from './types'
 
 export const DEFAULT_INPAINT_MODEL = 'Carve/LaMa-ONNX'

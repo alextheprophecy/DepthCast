@@ -15,12 +15,12 @@ applied to **lighting** instead of **parallax**. The two form a **"cast" family*
 
 Relighting a photo today means one of three walls, exactly like the depth/parallax space did:
 
-| Existing path | Wall |
-| --- | --- |
+| Existing path                                                    | Wall                                                                       |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | **IC-Light / Neural Gaffer / UniRelight** (diffusion relighting) | Python + GPU, multi-second per frame, **not interactive, not embeddable**. |
-| **Photoshop / manual dodge-and-burn** | Hand work by an artist. The universal blocker. |
-| **3D / Blender relight** | Requires actual geometry; you don't have a mesh, you have a JPEG. |
-| **Portrait-only face relight demos** | Faces only, dated, server-bound. |
+| **Photoshop / manual dodge-and-burn**                            | Hand work by an artist. The universal blocker.                             |
+| **3D / Blender relight**                                         | Requires actual geometry; you don't have a mesh, you have a JPEG.          |
+| **Portrait-only face relight demos**                             | Faces only, dated, server-bound.                                           |
 
 There is **no `npm i` library that relights an arbitrary photo client-side.** That is the gap.
 lightcast closes it: **image → automatic normals+depth → interactive relighting**, 100% in the
@@ -95,28 +95,28 @@ npx @lightcast/cli bake hero.jpg -o hero.gbuffer.png
 await createLightcast('/hero.jpg', { gbuffer: '/hero.gbuffer.png' }) // inference skipped
 ```
 
-|                    | Runtime                          | Precompute                |
-| ------------------ | -------------------------------- | ------------------------- |
-| Shipped to visitor | ~15 KB runtime + Metric3D model  | ~15 KB runtime + one PNG  |
-| First paint        | seconds (download + infer)       | instant                   |
-| Best for           | editors, prototypes, UGC         | hero sections, prod, ads  |
+|                    | Runtime                         | Precompute               |
+| ------------------ | ------------------------------- | ------------------------ |
+| Shipped to visitor | ~15 KB runtime + Metric3D model | ~15 KB runtime + one PNG |
+| First paint        | seconds (download + infer)      | instant                  |
+| Best for           | editors, prototypes, UGC        | hero sections, prod, ads |
 
 ## 6. Public API (sketch)
 
 ```ts
 const scene = await createLightcast(input, {
   model: 'onnx-community/metric3d-vit-small',
-  device: 'auto',                  // webgpu → wasm
-  delight: 'grade',                // 'grade' | 'intrinsic' | 'none'
+  device: 'auto', // webgpu → wasm
+  delight: 'grade', // 'grade' | 'intrinsic' | 'none'
   light: { azimuth: 35, elevation: 45, color: '#fff', temperature: 5500, intensity: 1 },
   ambient: 0.25,
   specular: 0.3,
-  shadows: true,                   // screen-space contact shadows from depth
-  controls: 'pointer',             // pointer moves the light
+  shadows: true, // screen-space contact shadows from depth
+  controls: 'pointer', // pointer moves the light
 })
 scene.mount(el)
-scene.setLight({ azimuth: -20 })   // -1..1 or degrees; drive from anything
-scene.play('studio')               // 'studio' | 'orbit' | 'golden-hour' | 'flicker'
+scene.setLight({ azimuth: -20 }) // -1..1 or degrees; drive from anything
+scene.play('studio') // 'studio' | 'orbit' | 'golden-hour' | 'flicker'
 const webm = await scene.exportVideo({ path: 'orbit', durationMs: 4000 })
 ```
 
@@ -134,9 +134,9 @@ React: `<Relight src="/portrait.jpg" preset="studio" />` — SSR-safe, like `<De
 
 ## 8. Risks & mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Metric3D normals noisier than diffusion models | Bilateral-smooth normals using the depth edges; expose `quality` (small/large). |
-| De-lighting is approximate | Ship `grade` as honest "relight", `intrinsic` for fidelity; never claim physically-correct. |
-| Model download size | Precompute mode ships zero model; cache model in browser for runtime mode. |
-| WebGPU availability | WASM fallback (slower infer; relight is always real-time once the buffer exists). |
+| Risk                                           | Mitigation                                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Metric3D normals noisier than diffusion models | Bilateral-smooth normals using the depth edges; expose `quality` (small/large).             |
+| De-lighting is approximate                     | Ship `grade` as honest "relight", `intrinsic` for fidelity; never claim physically-correct. |
+| Model download size                            | Precompute mode ships zero model; cache model in browser for runtime mode.                  |
+| WebGPU availability                            | WASM fallback (slower infer; relight is always real-time once the buffer exists).           |

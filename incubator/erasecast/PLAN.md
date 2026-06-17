@@ -15,12 +15,12 @@ packages well** — and ship it as one `import` with a runtime mode and a precom
 
 "Magic eraser" is one of the most-loved features on phones, yet on the web every path has a wall:
 
-| Existing path | Wall |
-| --- | --- |
-| **Cloud erasers** (Cleanup.pictures, Adobe, etc.) | Upload your photo to a **server**; rate-limited, paid, **privacy cost**. |
-| **`lama-cleaner` / ComfyUI** | Python + local GPU; not embeddable in a web app. |
-| **Browser SAM2 / LaMa demos** | Scattered one-off demos — **no packaged library**, and they break down at high resolution. |
-| **Photoshop content-aware fill** | Desktop, manual, not a library. |
+| Existing path                                     | Wall                                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Cloud erasers** (Cleanup.pictures, Adobe, etc.) | Upload your photo to a **server**; rate-limited, paid, **privacy cost**.                   |
+| **`lama-cleaner` / ComfyUI**                      | Python + local GPU; not embeddable in a web app.                                           |
+| **Browser SAM2 / LaMa demos**                     | Scattered one-off demos — **no packaged library**, and they break down at high resolution. |
+| **Photoshop content-aware fill**                  | Desktop, manual, not a library.                                                            |
 
 There is **no `npm i` library that does the full select→erase pipeline client-side and survives
 high-resolution images.** That is the gap.
@@ -91,20 +91,21 @@ npx @erasecast/cli remove ./shots/*.jpg --auto "price tag" -o ./clean/   # SAM2 
 const eraser = await createEraser('/photo.jpg', {
   samModel: 'onnx-community/sam2-hiera-tiny',
   inpaintModel: 'Carve/LaMa-ONNX',
-  device: 'auto',          // webgpu → wasm
-  strategy: 'tiled',       // 'tiled' | 'single' | 'progressive'
+  device: 'auto', // webgpu → wasm
+  strategy: 'tiled', // 'tiled' | 'single' | 'progressive'
   tileSize: 512,
-  overlap: 64,             // feathered blend band between tiles
-  maskDilation: 16,        // grow the mask so edges of the object are caught
-  feather: 8,              // soft recomposite band against the original
+  overlap: 64, // feathered blend band between tiles
+  maskDilation: 16, // grow the mask so edges of the object are caught
+  feather: 8, // soft recomposite band against the original
 })
 
-eraser.mount(el)                       // interactive canvas
-const mask = await eraser.selectAt(x, y)  // SAM2 click → mask (positive)
-eraser.addPoint(x, y, false)              // negative point to subtract
-eraser.brush(path, { add: true })         // manual brush
-const result = await eraser.erase()       // returns cleaned ImageData
-eraser.undo(); eraser.redo()
+eraser.mount(el) // interactive canvas
+const mask = await eraser.selectAt(x, y) // SAM2 click → mask (positive)
+eraser.addPoint(x, y, false) // negative point to subtract
+eraser.brush(path, { add: true }) // manual brush
+const result = await eraser.erase() // returns cleaned ImageData
+eraser.undo()
+eraser.redo()
 const blob = await eraser.toBlob('image/png')
 eraser.dispose()
 ```
@@ -120,14 +121,14 @@ React: `<Eraser src="/photo.jpg" onErase={(blob) => …} />` — interactive, SS
 - [ ] React `<Eraser/>` + batch CLI
 - [ ] Poisson blending option for tricky gradients
 - [ ] Auto-detect mode (text prompt → mask) via open-vocab detector
-- [ ] Object *replace* (swap LaMa for a diffusion fill) as an opt-in plugin
+- [ ] Object _replace_ (swap LaMa for a diffusion fill) as an opt-in plugin
 
 ## 8. Risks & mitigations
 
-| Risk | Mitigation |
-| --- | --- |
-| Combined model download (~330 MB+) | Lazy-load + browser cache; encoder loads on first interaction; quantize where possible; precompute/batch path needs no client models. |
-| LaMa weak on large/structured holes | Tiling + context padding; expose `strategy`; roadmap diffusion-fill plugin for hard cases. |
-| Seams at tile boundaries | Overlap + feather/Poisson blend; only recomposite the masked band over the untouched original. |
-| Memory on big images | Stream tiles; cap working resolution with opt-in full-res refine; release tensors aggressively. |
-| WebGPU availability | WASM fallback (slower but functional). |
+| Risk                                | Mitigation                                                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Combined model download (~330 MB+)  | Lazy-load + browser cache; encoder loads on first interaction; quantize where possible; precompute/batch path needs no client models. |
+| LaMa weak on large/structured holes | Tiling + context padding; expose `strategy`; roadmap diffusion-fill plugin for hard cases.                                            |
+| Seams at tile boundaries            | Overlap + feather/Poisson blend; only recomposite the masked band over the untouched original.                                        |
+| Memory on big images                | Stream tiles; cap working resolution with opt-in full-res refine; release tensors aggressively.                                       |
+| WebGPU availability                 | WASM fallback (slower but functional).                                                                                                |

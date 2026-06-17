@@ -2,7 +2,19 @@
   "name": "lightcast",
   "version": "0.0.1",
   "description": "Relight any photo from a single image in the browser — automatic normals + depth, real-time WebGL shading, no server.",
-  "keywords": ["relighting","relight","normals","surface-normals","depth","metric3d","webgl","webgpu","onnx","computer-vision","image"],
+  "keywords": [
+    "relighting",
+    "relight",
+    "normals",
+    "surface-normals",
+    "depth",
+    "metric3d",
+    "webgl",
+    "webgpu",
+    "onnx",
+    "computer-vision",
+    "image"
+  ],
   "license": "MIT",
   "author": "alextheprophecy",
   "repository": {
@@ -22,7 +34,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -37,5 +52,7 @@
     "tsup": "^8.3.5",
     "vitest": "^2.1.8"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -97,11 +97,11 @@ See [`PLAN.md`](./PLAN.md) for the full design, feasibility analysis and roadmap
 
 ## Packages
 
-| package | what |
-| --- | --- |
-| [`lightcast`](./packages/core) | framework-agnostic core |
-| [`@lightcast/react`](./packages/react) | `<Relight />` wrapper |
-| [`@lightcast/cli`](./packages/cli) | `bake` the G-buffer offline |
+| package                                | what                        |
+| -------------------------------------- | --------------------------- |
+| [`lightcast`](./packages/core)         | framework-agnostic core     |
+| [`@lightcast/react`](./packages/react) | `<Relight />` wrapper       |
+| [`@lightcast/cli`](./packages/cli)     | `bake` the G-buffer offline |
 
 ## License
 

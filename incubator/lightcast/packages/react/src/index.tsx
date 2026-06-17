@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { createLightcast, type LightcastOptions, type LightPreset, type LightScene } from 'lightcast'
+import {
+  createLightcast,
+  type LightcastOptions,
+  type LightPreset,
+  type LightScene,
+} from 'lightcast'
 
 export interface RelightProps extends LightcastOptions {
   src: string

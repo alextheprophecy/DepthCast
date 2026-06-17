@@ -60,7 +60,8 @@ export function boxBlur(
   // vertical
   for (let x = 0; x < width; x++) {
     let acc = 0
-    for (let y = -radius; y <= radius; y++) acc += tmp[Math.min(height - 1, Math.max(0, y)) * width + x]!
+    for (let y = -radius; y <= radius; y++)
+      acc += tmp[Math.min(height - 1, Math.max(0, y)) * width + x]!
     for (let y = 0; y < height; y++) {
       out[y * width + x] = acc / win
       const add = tmp[Math.min(height - 1, y + radius + 1) * width + x]!
@@ -116,7 +117,7 @@ export function delightGrade(
   const albedo = new Float32Array(n * 3)
   for (let i = 0; i < n; i++) {
     // Blend between original (strength 0) and fully flattened (strength 1).
-    const gain = (1 - strength) + strength * (mean / shading[i]!)
+    const gain = 1 - strength + strength * (mean / shading[i]!)
     albedo[i * 3] = lin[i * 3]! * gain
     albedo[i * 3 + 1] = lin[i * 3 + 1]! * gain
     albedo[i * 3 + 2] = lin[i * 3 + 2]! * gain
@@ -125,7 +126,11 @@ export function delightGrade(
 }
 
 /** Pack a linear-RGB albedo float array back into an sRGB RGBA ImageData-style buffer. */
-export function albedoToRgba(albedo: Float32Array, width: number, height: number): Uint8ClampedArray {
+export function albedoToRgba(
+  albedo: Float32Array,
+  width: number,
+  height: number,
+): Uint8ClampedArray {
   const n = width * height
   const out = new Uint8ClampedArray(n * 4)
   for (let i = 0; i < n; i++) {

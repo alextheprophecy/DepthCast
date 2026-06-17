@@ -11,8 +11,13 @@
   },
   "homepage": "https://github.com/alextheprophecy/lightcast",
   "type": "module",
-  "bin": { "lightcast": "./dist/index.js" },
-  "files": ["dist", "README.md"],
+  "bin": {
+    "lightcast": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -28,5 +33,7 @@
     "tsup": "^8.3.5",
     "typescript": "^5.7.2"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }
