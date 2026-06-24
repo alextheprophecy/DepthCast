@@ -51,8 +51,18 @@ void main() {
     float du = texture(uDepth, vUV - vec2(0.0, s.y)).r;
     float dd = texture(uDepth, vUV + vec2(0.0, s.y)).r;
     float grad = length(vec2(dr - dl, dd - du));
-    float edge = smoothstep(uCut, uCut * 2.6, grad); // ~1px AA band
+    // Feather the cut over a band that stays ~constant in screen pixels: widen it
+    // by the local screen-space rate-of-change of the gradient (fwidth) so the
+    // silhouette anti-aliases consistently regardless of DPR or depth resolution.
+    // The uCut*1.6 floor preserves the original band width away from steep edges.
+    float band = max(uCut * 1.6, fwidth(grad) * 2.0);
+    float edge = smoothstep(uCut, uCut + band, grad);
     color.a *= (1.0 - edge);
+
+    // Dissolve the outermost ring of the plane into the static backdrop so the
+    // image-plane rectangle never reads as a hard edge sliding across the fill.
+    vec2 m = min(vUV, 1.0 - vUV);
+    color.a *= smoothstep(0.0, 0.03, min(m.x, m.y));
   }
 
   if (color.a <= 0.02) discard;

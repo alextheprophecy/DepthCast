@@ -30,6 +30,21 @@ const DTYPE_BY_QUALITY: Record<Quality, 'q8' | 'fp16' | 'fp32'> = {
   high: 'fp32',
 }
 
+/**
+ * Pick a weight dtype that the target backend can actually run.
+ *
+ * fp16 compute is only reliable on the WebGPU EP. The WASM/CPU EP cannot build a
+ * session for an fp16 graph and throws
+ *   "InsertedPrecisionFreeCast_... / SimplifiedLayerNormFusion ... was false".
+ * On WASM the precision ladder is q8 -> fp32, so any fp16 request degrades to
+ * fp32 there (smoother than q8, just heavier) instead of crashing.
+ */
+function dtypeFor(device: Device, quality: Quality): 'q8' | 'fp16' | 'fp32' {
+  const dtype = DTYPE_BY_QUALITY[quality]
+  if (device === 'wasm' && dtype === 'fp16') return 'fp32'
+  return dtype
+}
+
 const pipelineCache = new Map<string, Promise<DepthEstimationPipeline>>()
 
 /** Lazily create (and cache) a depth-estimation pipeline, webgpu→wasm fallback. */
@@ -37,7 +52,6 @@ export async function getDepthPipeline(
   options: DepthPipelineOptions = {},
 ): Promise<DepthEstimationPipeline> {
   const { model = DEFAULT_MODEL, device = 'auto', quality = 'medium', onModelProgress } = options
-  const dtype = DTYPE_BY_QUALITY[quality]
 
   const progress_callback: ProgressCallback | undefined = onModelProgress
     ? (e: any) => {
@@ -50,6 +64,7 @@ export async function getDepthPipeline(
 
   let lastError: unknown
   for (const dev of order) {
+    const dtype = dtypeFor(dev, quality)
     const key = `${model}::${dev}::${dtype}`
     let pending = pipelineCache.get(key)
     if (!pending) {

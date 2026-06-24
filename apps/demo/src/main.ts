@@ -66,9 +66,10 @@ async function load(src: string | File) {
     intensity: Number($<HTMLInputElement>('intensity').value),
     edgeHandling: $<HTMLSelectElement>('edge').value as DepthcastOptions['edgeHandling'],
     controls: $<HTMLSelectElement>('ctrl').value as DepthcastOptions['controls'],
-    // Same-origin single-threaded WASM + q8 model keeps inference viable here.
-    device: 'wasm',
-    quality: 'low',
+    // Prefer WebGPU (fp16 — fast and smooth) and fall back to WASM, where 'medium'
+    // degrades fp16 → fp32 (heavier download, but q8/low has visibly blocky depth).
+    device: 'auto',
+    quality: 'medium',
     maxResolution: isMobile ? 640 : 832,
     onProgress: setProgress,
   }

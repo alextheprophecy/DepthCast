@@ -131,9 +131,15 @@ function push(coarse: Level, fine: Level): void {
       const cy = Math.min(coarse.h - 1, y >> 1)
       const co = (cy * coarse.w + cx) * 4
       const fill = 1 - known
-      fine.data[o] = (fine.data[o] as number) + (coarse.data[co] as number) * fill
-      fine.data[o + 1] = (fine.data[o + 1] as number) + (coarse.data[co + 1] as number) * fill
-      fine.data[o + 2] = (fine.data[o + 2] as number) + (coarse.data[co + 2] as number) * fill
+      // Convex blend, NOT additive: keep the pixel's own (weighted, un-premultiplied)
+      // colour for its known fraction and pull the coarse estimate into the unknown
+      // fraction. pull() stores non-premultiplied colour, so this is a true lerp.
+      // The old `fine + coarse*fill` summed two full-strength colours; at a hole the
+      // stale RGB is the removed *foreground* pixel, so a bright object (gold tray,
+      // white pot) gave fg+bg > 1 and clamped to white — the reported halos.
+      fine.data[o] = (fine.data[o] as number) * known + (coarse.data[co] as number) * fill
+      fine.data[o + 1] = (fine.data[o + 1] as number) * known + (coarse.data[co + 1] as number) * fill
+      fine.data[o + 2] = (fine.data[o + 2] as number) * known + (coarse.data[co + 2] as number) * fill
       fine.data[o + 3] = 1
     }
   }

@@ -88,7 +88,18 @@ export class Renderer {
     gl.enable(gl.DEPTH_TEST)
     gl.depthFunc(gl.LEQUAL)
     gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    // Straight-alpha "over" for RGB, but Porter-Duff "over" (src factor ONE) for the
+    // ALPHA channel. With plain SRC_ALPHA on alpha, fractional-alpha fragments (the
+    // edge-dissolve ring + the silhouette cut) pull the canvas's own alpha below 1.0;
+    // on a non-premultiplied canvas over a dark page that shows through as a moving
+    // black rectangle around the plane. Keeping dst alpha = 1.0 over the opaque
+    // backdrop removes it while preserving true transparency for the no-backdrop case.
+    gl.blendFuncSeparate(
+      gl.SRC_ALPHA,
+      gl.ONE_MINUS_SRC_ALPHA,
+      gl.ONE,
+      gl.ONE_MINUS_SRC_ALPHA,
+    )
   }
 
   private buildGrid(segments: number): { vao: WebGLVertexArrayObject; indexCount: number } {

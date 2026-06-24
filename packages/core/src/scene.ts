@@ -78,7 +78,11 @@ export async function createDepthcast(
         onInference: (p) => o.onProgress?.('inference', p),
       },
     )
-    depthImageData = grayToImageData(raw.gray, raw.width, raw.height)
+    // Depth-Anything output — especially q8 at quality:'low' — is spatially coarse
+    // and quantized into terraces. The silhouette cut traces those blocks and
+    // stair-steps. A light separable blur rounds the iso-depth contours before they
+    // drive both the foreground mask and the shader cut, without softening the pop.
+    depthImageData = blurBackground(grayToImageData(raw.gray, raw.width, raw.height), 2)
   }
 
   // 3. Background fill layer for disocclusion.
