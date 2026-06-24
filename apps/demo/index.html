@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>depthcast — any image into an interactive 3D pop-out</title>
+    <meta
+      name="description"
+      content="Drop a photo, get an interactive 3D pop-out in the browser. Automatic depth, no server, no manual depth map."
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>depth<span>cast</span></h1>
+        <p>
+          Drop any image. Get an interactive 3D pop-out. Automatic depth, fully in your browser.
+        </p>
+      </header>
+
+      <div id="stage" class="stage">
+        <div id="dropzone" class="dropzone">
+          <p><strong>Drop an image</strong> or click to choose</p>
+          <p class="hint">…or pick a sample below</p>
+          <input id="file" type="file" accept="image/*" hidden />
+        </div>
+        <div id="viewport" class="viewport" hidden></div>
+        <div id="progress" class="progress" hidden>
+          <div class="bar"></div>
+          <span></span>
+        </div>
+      </div>
+
+      <div id="samples" class="samples"></div>
+
+      <section id="controls" class="controls" hidden>
+        <label
+          >Intensity <input id="intensity" type="range" min="0" max="1.2" step="0.01" value="0.5"
+        /></label>
+        <label
+          >Occlusion
+          <select id="edge">
+            <option value="inpaint">inpaint (background fill)</option>
+            <option value="feather">feather (fast)</option>
+            <option value="none">none</option>
+          </select>
+        </label>
+        <label
+          >Controls
+          <select id="ctrl">
+            <option value="pointer">pointer</option>
+            <option value="orbit">orbit (drag)</option>
+            <option value="gyro">gyro</option>
+            <option value="none">none</option>
+          </select>
+        </label>
+        <button id="play">▶ Play loop</button>
+        <button id="export">⬇ Export WebM</button>
+      </section>
+
+      <footer>
+        <p>
+          <code>npm i depthcast</code> ·
+          <a href="https://github.com/alextheprophecy/depthcast">GitHub</a>
+        </p>
+      </footer>
+    </main>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
